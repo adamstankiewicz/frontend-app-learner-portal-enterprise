@@ -1,12 +1,16 @@
-export function getSkillQuiz(skillsQuizes) {
-  if (skillsQuizes && skillsQuizes.results.length > 0) {
-    for (let i = 0; i < skillsQuizes.results.length; i++) {
-      if (skillsQuizes.results[i].currentJob) {
-        return skillsQuizes.results[i];
+import { CURRENT_JOB_PROFILE_FIELD_NAME } from './constants';
+
+export function extractCurrentJobID(profileData) {
+  let currentJobID;
+  const { extended_profile: extendedProfile } = profileData;
+  if (extendedProfile.length > 0) {
+    extendedProfile.forEach((field) => {
+      if (field.field_name === CURRENT_JOB_PROFILE_FIELD_NAME) {
+        currentJobID = field.field_value;
       }
-    }
+    });
   }
-  return null;
+  return currentJobID;
 }
 
 export function prepareSpiderChartData(categories) {

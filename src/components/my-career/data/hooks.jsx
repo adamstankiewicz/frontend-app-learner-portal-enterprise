@@ -3,29 +3,28 @@ import { logError } from '@edx/frontend-platform/logging';
 import { camelCaseObject } from '@edx/frontend-platform/utils';
 import Plotly from 'plotly.js-dist';
 
-import { getLearnerSkillLevels, getLearnerSkillQuiz } from './service';
+import { getLearnerSkillLevels, getLearnerProfileInfo } from './service';
 import { getSpiderChartData, prepareSpiderChartData } from './utils';
 
-export function useLearnerSkillQuiz(username) {
-  const [learnerSkillQuiz, setLearnerSkillQuiz] = useState();
+export function useLearnerProfileData(username) {
+  const [profileData, setLearnerProfileData] = useState();
   const [fetchError, setFetchError] = useState();
 
   useEffect(() => {
     const fetchData = async () => {
       if (username) {
         try {
-          const response = await getLearnerSkillQuiz(username);
-          setLearnerSkillQuiz(response.data);
+          const data = await getLearnerProfileInfo(username);
+          setLearnerProfileData(data);
         } catch (error) {
           logError(error);
           setFetchError(error);
         }
       }
-      return undefined;
     };
     fetchData();
   }, [username]);
-  return [camelCaseObject(learnerSkillQuiz), fetchError];
+  return [profileData, fetchError];
 }
 
 export function useLearnerSkillLevels(jobId) {

@@ -1,27 +1,48 @@
-import React, { useContext } from 'react';
+import React, {
+  useContext, useMemo, useState, useEffect,
+} from 'react';
 
 import { AppContext, ErrorPage } from '@edx/frontend-platform/react';
 import { SearchData } from '@edx/frontend-enterprise-catalog-search';
-import { useLearnerSkillQuiz } from './data/hooks';
+import { useLearnerProfileData } from './data/hooks';
 import { LoadingSpinner } from '../loading-spinner';
 import AddJobRole from './AddJobRole';
 import VisualizeCareer from './VisualizeCareer';
-import { getSkillQuiz } from './data/utils';
-import { SEARCH_FACET_FILTERS } from '../search/constants';
+import { extractCurrentJobID } from './data/utils';
 
 const MyCareerTab = () => {
   const { authenticatedUser } = useContext(AppContext);
   const { username } = authenticatedUser;
 
-  const [learnerSkillQuiz, learnerSkillQuizFetchError] = useLearnerSkillQuiz(
+  const [learnerProfileData, learnerProfileDataFetchError] = useLearnerProfileData(
     username,
   );
+  const [learnerProfileState, setLearnerProfileState] = useState();
 
-  if (learnerSkillQuizFetchError) {
-    return <ErrorPage status={learnerSkillQuizFetchError.status} />;
+  useEffect(() => {
+    if (learnerProfileData) {
+      setLearnerProfileState(learnerProfileData);
+    }
+  }, [learnerProfileData]);
+
+  const isLoading = useMemo(
+    () => {
+      if (learnerProfileState || learnerProfileDataFetchError) {
+        return false;
+      }
+      return true;
+    },
+    [
+      learnerProfileState,
+      learnerProfileDataFetchError,
+    ],
+  );
+
+  if (learnerProfileDataFetchError) {
+    return <ErrorPage status={learnerProfileDataFetchError.status} />;
   }
 
-  if (!learnerSkillQuiz) {
+  if (isLoading) {
     return (
       <div className="py-5">
         <LoadingSpinner screenReaderText="loading my career data" />
@@ -29,14 +50,18 @@ const MyCareerTab = () => {
     );
   }
 
-  const skillQuiz = getSkillQuiz(learnerSkillQuiz);
+  const learnerCurrentJobID = extractCurrentJobID(learnerProfileState);
 
-  return (!skillQuiz) ? (
-    <AddJobRole />
-  ) : (
-    <SearchData searchFacetFilters={SEARCH_FACET_FILTERS}>
-      <VisualizeCareer jobId={skillQuiz.currentJob} />
-    </SearchData>
+  return (
+    <div>
+      <SearchData>
+        { !learnerCurrentJobID ? (
+          <AddJobRole submitClickHandler={setLearnerProfileState} />
+        ) : (
+          <VisualizeCareer jobId={learnerCurrentJobID} submitClickHandler={setLearnerProfileState} />
+        )}
+      </SearchData>
+    </div>
   );
 };
 
