@@ -3,8 +3,10 @@ import { getConfig } from '@edx/frontend-platform/config';
 import { loginRefresh } from '../../../utils/common';
 
 export function fetchSubscriptionLicensesForUser(enterpriseUUID) {
+  // TODO: Test scenario where revoked and active licenses are returned
   const queryParams = new URLSearchParams({
     enterprise_customer_uuid: enterpriseUUID,
+    include_revoked: true,
   });
   const config = getConfig();
   const url = `${config.LICENSE_MANAGER_URL}/api/v1/learner-licenses/?${queryParams.toString()}`;
